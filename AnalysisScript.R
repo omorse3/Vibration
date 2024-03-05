@@ -8,29 +8,35 @@ library(tidyverse)
 Vibration_Soil_Fauna <- read_excel("Vibration_Soil_Fauna.xlsx")
 View(Vibration_Soil_Fauna)
 
-#Remove preliminary sample
+#Remove preliminary sample timepoint
 Vibration_Soil_Fauna <- Vibration_Soil_Fauna %>% filter(Sample!="Exp_Start")
 
-#fix NA values
+#fix NA values (set them to "0")
 Vibration_Soil_Fauna[is.na(Vibration_Soil_Fauna)] <- 0
 
-#Create two data frames by timepoint
-Timepoint_1 <- Vibration_Soil_Fauna %>% filter(Timepoint == "1")
-
-Timepoint_2 <- Vibration_Soil_Fauna %>% filter(Timepoint == "2")
-
 #Making factors
-
 Vibration_Soil_Fauna <- Vibration_Soil_Fauna %>% mutate(Worm_Presence = factor(Worm_Presence, levels = c("No", "Yes")),
                                                         Vibration_Presence = factor(Vibration_Presence, levels = c("No", "Yes")),
                                                         Timepoint = factor(Timepoint, levels = c("1", "2")))
 
+
+
+#Create two data frames by timepoint
+Timepoint_1 <- Vibration_Soil_Fauna %>% filter(Timepoint == "1") %>% select(-Timepoint)
+
+Timepoint_2 <- Vibration_Soil_Fauna %>% filter(Timepoint == "2") %>% select(-Timepoint)
+
+
 #summary calcs; currently not working for some reason----
 
-NewData <- Vibration_Soil_Fauna %>%
-  group_by(Worm_Presence,Vibration_Presence) %>% 
-  mutate(Total_Collembola=sum(Sminthuridae:Onychiuridae))
-Vibration_Soil_Fauna$Total_Collembola
+NewData <- Timepoint_1 %>%
+  group_by(Worm_Presence, Vibration_Presence) %>%
+  summarise(Total_Collembola = sum(rowSums(select(., c(Sminthuridae:Onychiuridae)), na.rm = TRUE)),
+            .groups = 'drop')
+
+
+NewData$Total_Collembola
+
 
 NewData <- Vibration_Soil_Fauna %>% 
   group_by(Worm_Presence,Vibration_Presence,Timepoint) %>% 
