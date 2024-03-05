@@ -5,35 +5,50 @@ library(dplyr)
 library(tidyverse)
 
 
-Vibration_Soil_Fauna <- read_excel("Vibration_Soil_Fauna.xlsx")
-View(Vibration_Soil_Fauna)
+#Vibration_Soil_Fauna <- read_excel("Vibration_Soil_Fauna.xlsx")
+#View(Vibration_Soil_Fauna)
+#write as CSV
+#write.csv(Vibration_Soil_Fauna, "Vibration_Soil_Fauna.csv")
+
+
+
+Vibration_Soil_Fauna_csv <- read_csv("Vibration_Soil_Fauna.csv")
 
 #Remove preliminary sample timepoint
-Vibration_Soil_Fauna <- Vibration_Soil_Fauna %>% filter(Sample!="Exp_Start")
+Vibration_Soil_Fauna_csv <- Vibration_Soil_Fauna_csv %>% filter(Sample!="Exp_Start")
 
 #fix NA values (set them to "0")
-Vibration_Soil_Fauna[is.na(Vibration_Soil_Fauna)] <- 0
+Vibration_Soil_Fauna_csv[is.na(Vibration_Soil_Fauna_csv)] <- 0
 
 #Making factors
-Vibration_Soil_Fauna <- Vibration_Soil_Fauna %>% mutate(Worm_Presence = factor(Worm_Presence, levels = c("No", "Yes")),
+Vibration_Soil_Fauna_csv <- Vibration_Soil_Fauna_csv %>% mutate(Worm_Presence = factor(Worm_Presence, levels = c("No", "Yes")),
                                                         Vibration_Presence = factor(Vibration_Presence, levels = c("No", "Yes")),
                                                         Timepoint = factor(Timepoint, levels = c("1", "2")))
 
 
 
-#Create two data frames by timepoint
-Timepoint_1 <- Vibration_Soil_Fauna %>% filter(Timepoint == "1") %>% select(-Timepoint)
 
-Timepoint_2 <- Vibration_Soil_Fauna %>% filter(Timepoint == "2") %>% select(-Timepoint)
+
+#Create two data frames by timepoint
+Timepoint_1 <- Vibration_Soil_Fauna_csv %>% filter(Timepoint == "1") %>% select(-Timepoint)
+
+Timepoint_2 <- Vibration_Soil_Fauna_csv %>% filter(Timepoint == "2") %>% select(-Timepoint)
+
+
+
+
 
 
 #summary calcs; currently not working for some reason----
 
-NewData <- Timepoint_1 %>%
+NewData <- Timepoint_1 %>% 
   group_by(Worm_Presence, Vibration_Presence) %>%
-  summarise(Total_Collembola = sum(rowSums(select(., c(Sminthuridae:Onychiuridae)), na.rm = TRUE)),
+  summarise(Total_Collembola = sum(Sminthuridae, na.rm = TRUE) +
+              sum(Sminthurididae, na.rm = TRUE) +
+              sum(Isotomidae, na.rm = TRUE) +
+              sum(Entomobryidae, na.rm = TRUE) +
+              sum(Onychiuridae, na.rm = TRUE),
             .groups = 'drop')
-
 
 NewData$Total_Collembola
 
